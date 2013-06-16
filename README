@@ -1,0 +1,2 @@
+Created by Michał Bień <michal99999<at>gmail<dot>com> under GNU GPL license.
+This is test version. To use with real server, change your server adress in Connection::conectToHost()

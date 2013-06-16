@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>formoza_icon.png</file>
+    </qresource>
+</RCC>

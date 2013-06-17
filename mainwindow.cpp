@@ -18,7 +18,7 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  ***********************************************************************************/
 
-#include "mainwindow.h"
+#include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 
 #include <QDesktopServices>
@@ -48,6 +48,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(restoreAction, SIGNAL(triggered()), this, SLOT(show()));
     connect(wiadomosciAction, SIGNAL(triggered()), this, SLOT(showWiadomosciDialog()));
     connect(ui->Grupy_list, SIGNAL(itemClicked(QListWidgetItem *)), this, SLOT(setGrupaDane(QListWidgetItem *)));
+    connect(trayIcon, SIGNAL(messageClicked()), this, SLOT(trayMessageClicked()));
     setIconsAndTray();
     trayMessageState.first = QString("INFORMATION");
 }
@@ -235,8 +236,7 @@ void MainWindow::wiadomosciDialogUpdate(QString user, QString message)
     {
         trayIcon->showMessage(QString("Nowa wiadomość od: ") + user, QString("\"") + message + QString("\""));
         trayMessageState.first = QString("MESSAGE");
-        trayMessageState.second = user;
-        connect(trayIcon, SIGNAL(messageClicked()), this, SLOT(trayMessageClicked()));
+        trayMessageState.second.push_back(user);
     }
 }
 
@@ -248,9 +248,55 @@ void MainWindow::trayMessageClicked()
     else if(trayMessageState.first == QString("MESSAGE"))
     {
         WiadomosciDialog* dialog = new WiadomosciDialog(parent, this);
-        dialog->showDialog(trayMessageState.second);
+        dialog->showDialog(trayMessageState.second.at(0));
         wiadomosciDialogList.push_back(dialog);
-
-        trayMessageState.first = QString("INFORMATION");
     }
+
+    else if(trayMessageState.first == QString("NOTIFICATION"))
+    {
+        for(int i=0; i<trayMessageState.second.size(); i++)
+        {
+            bool shouldBe = true;
+            for(int i2=0; i2<wiadomosciDialogList.size(); i2++)
+            {
+                if(wiadomosciDialogList.at(i2)->currentUser == trayMessageState.second.at(i))
+                    shouldBe = false;
+            }
+
+            if(shouldBe)
+            {
+                WiadomosciDialog* dialog = new WiadomosciDialog(parent, this);
+                dialog->showDialog(trayMessageState.second.at(i));
+                wiadomosciDialogList.push_back(dialog);
+            }
+        }
+    }
+
+    trayMessageState.first = QString("INFORMATION");
+    trayMessageState.second.clear();
+}
+
+void MainWindow::showPowiadomienia()
+{
+    QVector<Powiadomienie> vector = connection->getFirstUpdate();
+    if(vector.size() == 0)
+        return;
+
+    QString powiad;
+
+    trayMessageState.first = QString("NOTIFICATION");
+
+    for(int i=0; i<vector.size();i++)
+    {
+        if(vector.at(i).type=="wia")
+        {
+            powiad += QString("Nowa wiadomość od: ");
+            powiad += vector.at(i).message;
+            powiad += QString("\n");
+
+            trayMessageState.second.push_back(vector.at(i).message);
+        }
+    }
+
+    trayIcon->showMessage(QString("Powiadomienia"), powiad);
 }

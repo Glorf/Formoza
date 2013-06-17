@@ -46,6 +46,12 @@ struct Wiadomosc
     QString date;
 };
 
+struct Powiadomienie
+{
+    QString type;
+    QString message;
+};
+
 class Connection : public QObject
 {
     Q_OBJECT
@@ -59,6 +65,7 @@ public:
     GroupInfo getGrupaDane(QString grupa);
     QVector<QString> getAllUsers();
     QVector<Wiadomosc> getChatLog(QString person);
+    QVector<Powiadomienie> getFirstUpdate();
     void sendMessage(QString receiver, QString message);
 
 public slots:

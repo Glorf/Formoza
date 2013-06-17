@@ -18,9 +18,9 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  ***********************************************************************************/
 
-#include "wiadomoscidialog.h"
+#include "wiadomoscidialog.hpp"
 #include "ui_wiadomoscidialog.h"
-#include "mainwindow.h"
+#include "mainwindow.hpp"
 #include <QDateTime>
 #include <QScrollBar>
 

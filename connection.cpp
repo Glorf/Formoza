@@ -19,7 +19,7 @@
  ***********************************************************************************/
 
 #include "connection.hpp"
-#include "mainwindow.h"
+#include "mainwindow.hpp"
 
 Connection::Connection(MainWindow *parent):
     parent(parent),
@@ -80,6 +80,8 @@ void Connection::setConnected()
     parent->setDane();
 
     parent->setGrupy();
+
+    parent->showPowiadomienia();
 }
 
 void Connection::setDisconnected()
@@ -250,6 +252,55 @@ void Connection::updateMessage()
         }
     }
     connect(socket, SIGNAL(readyRead()), this, SLOT(updateMessage()));
+}
+
+QVector<Powiadomienie> Connection::getFirstUpdate()
+{
+    QVector<Powiadomienie> vector;
+    disconnect(socket, SIGNAL(readyRead()), this, SLOT(updateMessage()));
+    QString ackResponse("ack");
+    socket->write("get");
+    socket->waitForBytesWritten();
+    socket->waitForReadyRead();
+    QString received(socket->readAll());
+    if (received==ackResponse)
+    {
+        socket->write("fup");
+        socket->waitForBytesWritten();
+        socket->waitForReadyRead();
+
+        int liczba = socket->readAll().toInt();
+
+        socket->write(ackResponse.toUtf8().data());
+        socket->waitForBytesWritten();
+        socket->waitForReadyRead();
+
+        //USERS
+        for(int i=0; i<liczba; i++)
+        {
+            Powiadomienie pow;
+            pow.type = QString(socket->readAll());
+            socket->write(ackResponse.toUtf8().data());
+            socket->waitForBytesWritten();
+            socket->waitForReadyRead();
+
+            pow.message = QString(socket->readAll());
+            socket->write(ackResponse.toUtf8().data());
+            socket->waitForBytesWritten();
+            socket->waitForReadyRead();
+
+            vector.push_back(pow);
+        }
+
+        socket->readAll(); //OK
+
+        QString end("end");
+        socket->write(end.toUtf8().data());
+        socket->waitForBytesWritten();
+
+        connect(socket, SIGNAL(readyRead()), SLOT(updateMessage()));
+    }
+    return vector;
 }
 
 GroupInfo Connection::getGrupaDane(QString grupa)

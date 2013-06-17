@@ -31,7 +31,7 @@
 #include <QBuffer>
 #include <QListWidgetItem>
 
-#include "wiadomoscidialog.h"
+#include "wiadomoscidialog.hpp"
 #include "connection.hpp"
 
 namespace Ui {
@@ -53,6 +53,7 @@ public:
     void setDane();
     void setGrupy();
     void wiadomosciDialogUpdate(QString user, QString message);
+    void showPowiadomienia();
 
 private slots:
     void aktualizujButtonClicked();
@@ -78,7 +79,7 @@ private:
     QAction *wyslij;
     QAction *info;
 
-    QPair<QString, QString> trayMessageState;
+    QPair<QString, QVector<QString> > trayMessageState;
 
     void setIconsAndTray();
 
